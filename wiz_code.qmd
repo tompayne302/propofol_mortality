@@ -1,0 +1,654 @@
+---
+title: "Wiz ASA"
+author: "Tom Payne & Kathleen Wisbey"
+date: '`r format(Sys.time(), "%Y-%m-%d %H:%M")`'
+format:
+  html:
+    embed-resources: true
+    toc: true
+    toc_depth: 4
+    number_sections: true
+    toc_float: true
+    theme: united
+---
+
+```{css, include=FALSE}
+.figure-caption {
+    display: none;
+}
+```
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(rms)
+library(ggplot2)
+library(ggpubr)
+library(gridExtra)
+library(ggrepel)
+library(knitr)
+library(kableExtra)
+library(jtools)
+library(broom)
+library(lme4)
+library(gt)
+library(gtsummary)
+library(pwr)
+library(janitor)
+library(patchwork)
+library(glmmTMB)
+library(ggeffects)
+library(effects)
+library(MuMIn)
+library(pscl)
+library(glmmTMB)
+library(MASS)
+library(performance)
+library(AER)
+library(patchwork)
+library(ggeffects)
+library(lmerTest)
+library(gtsummary)
+library(tidybayes)
+library(modelsummary)
+library(mgcv)
+library(brms)
+library(DHARMa)
+library(MetaStan)
+
+knitr::opts_chunk$set(echo = F, message = F, warning = F, error = T, 
+                      fig.height = 4, out.width = "100%", 
+                      dev = "png", dpi = 200, cache = T)
+
+### Set filepaths 
+import_path_mac <- '/Users/thomaspayne/Documents/MPhil/Wiz_ASA/'
+export_path_mac <- '/Users/thomaspayne/Documents/MPhil/Wiz_ASA/'
+
+
+df <- c(
+  "Aditianingsih D 2019", 3, 23, 1, 23,
+  "AitKenhead AR 1989", 14, 53, 9, 47,
+  "Albera R 2003", 0, 10, 0, 10,
+  "Ammar AS 2016", 0, 25, 0, 25,
+  "Arar C 2005", 0, 20, 0, 40,
+  "AstraZeneca 2001", 21, 222, 4, 105,
+  "Baki ED 2013", 1, 20, 3, 20,
+  "Ballester M 2011", 0, 19, 1, 21,
+  "Barrientos-Vega R 1997", 11, 54, 15, 54,
+  "Bastola P 2015", 0, 25, 0, 50,
+  "Beck-Schimmer B 2016", 9, 230, 7, 230,
+  "Bein B 2005",  0, 26, 0, 26,
+  "Bhagat H 2008", 0, 50, 0, 100,
+  "Bhakta P 2016", 0, 30, 0, 30,
+  "Biedrzycka A 2016", 0, 32, 0, 32,
+  "Bignami E 2011", 2, 50, 1, 50,
+  "Bindra A 2012", 0, 20, 0, 20,
+  "Bjelland TW 2012",13, 29, 20, 31,
+  "Braz MG 2013", 0, 15, 0, 15,
+  "Carrasco C 1998", 0, 50, 0, 25,
+  "Carson SS 2006", 25, 68, 24, 64,
+  "Cavalca V 2008", 0, 22, 0, 22,
+  "Chaaban MR 2013", 0, 18, 0, 15,
+  "Chamorro C 1996", 1, 50, 2, 48, 
+  "Cheng DCH 1996", 0,60,3,60,
+  "Cheng SS 2008",0,40,0,40,
+  "Chen J 2014", 0,33,0,33,
+  "Chen Z 2004", 0,18,0,17,
+  "Chitnis S 2021", 0,35,0,35,
+  "Chi X 2012", 0,20,0,20,
+  "Choi EK 2022",0,24,0,24,
+  "Cho YJ 2017", 0,52,0,52,
+  "Chung F 2000", 0,284,0,570,
+  "Cohen IT 2004", 0,28,0,28,
+  "Collini S 2006", 0, 150,0,50,
+  "Conti G 2016", 1,16,0,10,
+  "Conzen PF 2003", 0,11,0,12,
+  "Corbett SM 2005", 0,46,1,43,
+  "Cromheeke S 2006",0,15,0,15,
+  "Dabir S 2015", 0,44,0,44,
+  "Dahaba AA 2013", 0,11,0,11,
+  "Degauque C 1991", 0,5,3,6,
+  "De Hert SG 2002",0,10,0,10,
+  "De Hert SG 2003", 1,15,0,30,
+  "De Hert SG 2004", 1,80,1,240,
+  "de la Gala F 2017", 11,90,2,90,
+  "De la Mora-González JF 2012",0,30,0,30,
+  "Djaiani G 2016", 0,92,1,91,
+  "Doe A 2016", 0,19,0,22,
+  "Doi M 2020", 0,77,0,314,
+  "Dolk A 2022", 0,34,0,68,
+  "Dubowitz JA 2021",3,74,4,72,
+  "Efremov SM 2020", 0,10,0,10,
+  "Elliott RA 2003", 0,777,0,286,
+  "Engoren MC 1998", 0,35,0,35,
+  "Erdem AF 2016",0,10,0,10,
+  "Erturk R 2014", 0,22,0,22,
+  "Eshghpour M 2018", 0,25,0,25,
+  "Fang FQ 2021", 0,25,0,26,
+  "Flier S 2010", 2,49,0,51,
+  "Franzén S 2022",0,18,0,18,
+  "Ghori KA 2007", 5,13,3,15,
+  "Godet G 1998", 0,12,0,24,
+  "Godet G 2001", 0,15,0,30,
+  "Goettel N 2016", 0,25,0,25,
+  "Gollupady S 2020",0,45,0,25,
+  "Goswami U 2015", 0,40,0,40,
+  "Gravel NR 1999", 0,15,0,15,
+  "Graziola E 2005", 0,14,0,13,
+  "Grendelmeier P 2014",2,45,3,45,
+  "Guard BC 1998", 0,25,0,25,
+  "Guarracino G 2006", 1,55,0,57,
+  "Guerrero Orriach JL 2017", 0,60,0,30,
+  "Guinot PG 2020",0,39,1,42,
+  "Guo L 2020", 1,117,4,117,
+  "Hahm TS 2019", 0,69,0,70,
+  "Haldar R 2020", 0,30,0,60,
+  "Hall RI 2001", 15,77,11,79,
+  "Hannallah RS 1994",0,25,0,75,
+  "Hanss R 2006", 0,22,1,22,
+  "Harris CE 1990", 8,15,5,12,
+  "Hasani A 2009", 0,41,0,42,
+  "Hassan WMNW 2017",15,55,9,55,
+  "Higgins TL 2000", 33,106,35,104,
+  "Hofland J 2017", 3,166,0,326,
+  "Hovaguimian F 2020", 0,107,0,110,
+  "Huang Z 2011",0,60,0,60,
+  "Huey-Ling L 2008", 0,32,0,28,
+  "Hughes CG 2021", 85,208,82,214,
+  "Ionescu D 2009", 0,35,0,35,
+  "Jakob SM PRODEX 2012",48,247,43,251,
+  "Jakobsson J 1993", 0,100,0,100,
+  "Jakobsson J 1995",0,200,0,200,
+  "Jakobsson J 1997", 0,40,0,40,
+  "Jellish WS 1999", 0,41,0,79,
+  "Jellish WS 2003", 0,30,0,30,
+  "Jia L 2015",0,70,0,35,
+  "Ji FH 2018", 0,30,1,30,
+  "Joe YE 2021", 0,66,0,66,
+  "Jo Y 2019", 0,40,0,40,
+  "Jo Y 2021", 0,40,0,40,
+  "Jovic M 2012",0,11,0,11,
+  "Juvin P 1997", 0,15,0,30,
+  "Juvin P 2000", 0,12,0,24,
+  "Kalimeris K 2013", 0,25,0,25,
+  "Karaman Y 2015",0,35,0,35,
+  "Kawagoe I 2022", 0,40,0,40,
+  "Kawanishi R 2022", 4,30,2,30,
+  "Kazanci D 2009", 0,11,0,33,
+  "Kelly DF 1999",4,23,4,19,
+  "Kendall JB 2004", 0,10,0,20,
+  "Khalil M 2016", 0,25,0,25,
+  "Khurana P 2009", 0,48,0,50,
+  "Kim D 2019",0,21,0,22,
+  "Kim JE 2022", 0,22,0,22,
+  "Kim NY 2021", 0,67,1,65,
+  "Kim SH 2021", 0,38,0,38,
+  "Kim SH 2022", 4,60,4,60,
+  "Kim YS 2015",0,48,0,52,
+  "Ko JS 2008", 0,35,0,35,
+  "Konstantopoulos K 2012", 0,35,0,35, 
+  "Koscielniak-Nielsen ZJ 1998",0,20,0,20,
+  "Kostopanagiotou G 2006", 0,35,0,35,
+  "Kottermeb E 2012", 0,33,0,39,
+  "Kowalczyk M 2013", 0,43,0,40,
+  "Kress JP 1996",11,37,9,36,
+  "Kress JP 2001", 29,62,24,66,
+  "Kuzkov VV 2018", 0,20,0,20,
+  "Lavoie B 2012", 1,18,1,16,
+  "Law-Koune JD 2006",0,9,0,9,
+  "Lebovic S 1992", 0,10,0,10,
+  "Lehavi A 2015", 0,15,0,15,
+  "Liang G 2014", 0,80,0,80,
+  "Likhvantsev VV 2016",81,450,52,450,
+  "Lindholm EE 2013", 13,100,10,100,
+  "Lin WL 2019", 0,30,0,30,
+  "Little M 2018", 0,15,0,15,
+  "Liu J 2020",36,100,38,100,
+  "Liu S 2016", 0,30,0,30,
+  "Liu X 2016",1,45,0,45,
+  "Liu Y 2021", 15,136,13,136,
+  "Liu Y 2022", 0,13,0,26,
+  "Liu X 2020",0,21,0,20,
+  "Li XF 2021", 0,185,0,370,
+  "Li Y 2021", 0,272,0,272,
+  "Lorsomradee S 2006", 0,160,0,160,
+  "Lo YL 2006", 0,10,0,10,
+  "Lurati Buse GAL 2012",23,201,25,184,
+  "Lu Z 2022", 26,950,22,967,
+  "Malagon J 2005", 0,30,1,60,
+  "Maldonado JR 2009", 2,38,0,80,
+  "Manley NM 1997",5,22,3,15,
+  "Mao Y 2022", 0,68,0,68,
+  "Margarit SC 2014", 0,35,1,35,
+  "Markovic-Bocij 2016", 0,20,0,20,
+  "Mazoti MA 2013",0,18,0,16,
+  "McCollam JS 1999", 0,10,1,20,
+  "Mei B 2018", 1,150,1,152,
+  "Mei B 2020", 0,207,0,208,
+  "Mei X 2020", 0,106,0,103,
+  "Menik D 2009",4,20,3,20,
+  "Menke T 2013", 0,30,0,29,
+  "Moller PA 2013", 3,25,7,23,
+  "Moro ET 2016", 0,54,0,56,
+  "Moscarelli M 2018",0,32,0,33,
+  "Mrozinski P 2014", 0,30,0,32,
+  "Munoz HR 2002", 0,10,0,10,
+  "Musialowicz T 2007", 0,12,0,12,
+  "Nagao Y 2013",0,20,0,20,
+  "Nelskyla K 1997", 0,30,0,30,
+  "Nieuwenhuijs-Moeke GJ 2017",1,20,0,20,
+  "Niu Z 2021", 0,53,0,55,
+  "Oddby-Muhrbeck E 1993",0,34,0,34, 
+  "Oddby-Muhrbeck E 1994",0,30,0,60,
+  "Oh CS 2018", 0,78,0,78,
+  "Okuyscu S 2008", 0,27,0,33,
+  "Ortiz J 2014", 0,20,0,60,
+  "Ozturk I 2013",0,20,0,20,
+  "Pandit A 2020", 0,12,0,15,
+  "Parida S 2014", 0,50,0,50,
+  "Parker FC 2004", 1,120,4,240,
+  "Park J 2020",0,40,0,40,
+  "Picard V 2000", 0,22,0,24,
+  "Prins SA 2005", 0,22,0,33,
+  "Rabie M 2006", 0,10,0,10,
+  "Roh GU 2019",0,25,0,25,
+  "Rossetti AO 2011", 6,14,3,10,
+  "Royse CF 2011", 1,91,1,91,
+  "Rozec B 2014", 1,38,0,38,
+  "Sahoo AK 2019",1,22,2,44,
+  "Sanchez-Izquierdo-Riera JA 1998", 6,33,8,34,
+  "Sato S 2022", 2,25,1,25,
+  "Schilling T 2011",0,21,0,42,
+  "Schoen J 2011", 0,64,2,64,
+  "Serin S 1999", 0,21,0,22,
+  "Shah PJ 2016", 0,40,0,80,
+  "Shah PN 2014",0,15,0,15,
+  "Sheikh TA 2018", 0,30,0,30,
+  "Shin S 2020", 2,62,3,62,
+  "Shirakami C 2006", 0,30,0,31,
+  "Shi Y 2019",0,47,0,47,
+  "Sigler MB 2018", 8,19,9,17,
+  "Siripoonyohtal S 2021", 0,38,1,37,
+  "Sofra M 2013", 5,14,2,14,
+  "Song D 2002",0,60,0,60,
+  "Song JC 2010", 0,50,0,50,
+  "Song J-C 2013", 0,100,0,100,
+  "Song JG 2012", 4,183,6,183,
+  "Soro M 2012",0,39,2,36,
+  "Story DA 2001", 2,120,2,240,
+  "Strom T 2010", 31,70,26,70,
+  "Tanaka P 2017", 0,45,0,45,
+  "Tanguy 2012",7,15,5,15, 
+  "Tasdogan M 2009", 2,20,1,20,
+  "Tempo DK 2011", 1,22,0,23,
+  "Terao Y 2012", 0,16,0,16,
+  "Todd MM 1993",0,40,1,81,
+  "Tritapep L 2007", 1,75,1,75,
+  "Uri O 2011", 0,31,0,33,
+  "Valencia L 2013", 0,24,0,24,
+  "Vanacker BF 2007",0,21,0,21,
+  "Van Der Linden P 2010", 3,20,0,40,
+  "Van Hemelrijck J 1991", 0,23,0,69,
+  "Velayutham P 2019",0,34,0,35,
+  "Venn RM 2001", 1,10,2,10,
+  "Wahr JA 1996", 1,174,1,177,
+  "Wallden J 2006", 0,25,0,25,
+  "Wang J 2022",0,70,0, 70,
+  "Wang W 2019", 9,130,13,133,
+  "Wasowicz M 2018", 0,67,0,60,
+  "Weng Y 2020", 0,60,0,60,
+  "Winnigs NA 2021",3,29,2,28,
+  "Wojarska-Tręda E 2018", 0,31,0,30,
+  "Wu B 2019", 9,48,7,36,
+  "Wu J 2013", 0,120,0,120,
+  "Wu ZF 2019",24,25,24,25,
+  "Xu W 2013", 1,20,3,20,
+  "Yang XL 2017", 0,37,0,36,
+  "Yildirim V 2009",0,20,0,40,
+  "Yoo YC 2014", 0,56,0,56,
+  "Yu H 2021", 7,229,9,236,
+  "Yu JB 2014", 0,20,0,60,
+  "Zangrillo A 2011",2,44,1,44,
+  "Zhang J 2022", 0,29,0,30,
+  "Zhang Y 2017", 0,66,1,65,
+  "Zhang Y 2018", 0,195,0,192,
+  "Zhou T 2000",0,30,0,30,
+  "Zhou Y 2014", 13,81,10,43,
+  "Zhou Y 2022", 7,78,7,150,
+  "Zieman-Gimmel P 2013", 0,63,0,61,
+  "Zoremba M 2011",0,67,0,67,
+  "Zuurmond WW 1987", 0,20,0,20)
+
+publication <- df[seq(1, length(df), 5)]
+r2 <- df[seq(2, length(df), 5)]
+n2 <- df[seq(3, length(df), 5)]
+r1 <- df[seq(4, length(df), 5)]
+n1 <- df[seq(5, length(df), 5)]
+
+# Create the dataframe
+data <- data.frame(publication, r2, n2, r1, n1) %>%
+  mutate(across(c(r2, n2, r1, n1), as.numeric))
+
+dat_MetaStan = MetaStan::create_MetaStan_dat(
+  dat = data,
+  armVars = c(responders = "r",
+              sampleSize = "n"))
+
+df <- dat_MetaStan$data_long %>%
+      dplyr::mutate(treat = factor(rep(c(0, 1), 252)),
+                    control = rep(c(1, 0), 252),
+                    treat12 = rep(c(-0.5, 0.5), 252))
+
+df_no_dzs <- df %>%
+  group_by(study) %>%
+  filter(!(sum(responders) == 0))
+
+mf <- bf(responders | trials(sampleSize) ~ 1 + (1|study) + treat + (treat12-1|study))
+
+model <-  brms::brm(
+  formula = mf,
+  family = binomial,
+  prior = prior(normal(0, 0.82), class = b) +
+          prior(cauchy(0, 0.5), class = sd),
+  data = df,
+  iter = 4000, 
+  backend = "cmdstanr", 
+  cores = parallel::detectCores(),
+  chains = 4,
+  seed = 123)
+
+model_no_dz <-  brms::brm(
+  formula = mf,
+  family = binomial,
+  prior = prior(normal(0, 0.82), class = b) +
+          prior(cauchy(0, 0.5), class = sd),
+  data = df_no_dzs,
+  iter = 4000, 
+  backend = "cmdstanr", 
+  cores = parallel::detectCores(),
+  chains = 4,
+  seed = 123)
+
+update_fn <- function(model, sd_prior_value) {
+  priors <- c(
+    set_prior("normal(0, 0.82)", class = "b"),
+    set_prior(paste0("cauchy(", sd_prior_value, ", 0.08)"), class = "sd")
+  )
+  
+  updated_model <- update(model, prior = priors)
+  
+  return(updated_model)
+}
+
+sd_prior_values <- seq(0, 1, by = 0.01)
+
+updated_models <- lapply(sd_prior_values, function(sd) update_fn(model, sd))
+
+names(updated_models) <- paste0("model_sd_", sd_prior_values)
+
+theme_nice <- function() {
+  theme_minimal(base_family = "Verdana") +
+    theme(panel.grid.minor = element_blank(),
+          plot.title = element_text(family = "Verdana", face = "bold"),
+          axis.title = element_text(size = 14),
+          axis.text = element_text(size = 12),
+          strip.text = element_text(family = "Verdana", face = "bold",
+                                    size = rel(0.75), hjust = 0),
+          strip.background = element_rect(fill = "grey90", color = NA))
+}
+
+# Set the ggplot theme
+theme_set(theme_nice())
+
+forest_theme <- theme(axis.text.y = element_blank(),
+                      plot.title = ggtext::element_textbox_simple(
+                                        margin = margin(t = 0, b = 10),
+                                        padding = margin(rep(6, 4)),
+                                        fill = "grey90",
+                                        linetype = 1,
+                                        box.color = "black",
+                                        r = unit(9, "pt"),
+                                        halign = 0,
+                                        face = "bold",
+                                        lineheight = .9,
+                                        size = 12))
+
+gt_theme_nice <- function(data, ...) {
+  data %>%
+    gt::tab_style(
+    style = gt::cell_text(weight = "bold"),
+    locations = gt::cells_row_groups(groups = everything())) %>%
+  tab_style(
+    style = list(
+      cell_fill(color = "#e4e8ed"),
+      cell_text(weight = "bold")
+      ),
+    locations = cells_row_groups()) %>%
+    # if missing, replace NA w/ ---
+    fmt_missing(
+      columns = everything(),
+      missing_text = "---"
+    ) %>%
+    # add exact color from PFF table to spanners
+    tab_style(
+      style = list(
+        cell_fill(color = "#d4ebf2"),
+        cell_text(color = "#585d63"),
+        cell_borders(style = "solid", color = "white")),
+      locations = list(
+        cells_column_spanners(
+          spanners = everything()
+        )
+      )
+    ) %>%
+    # Make column labels and spanners all caps
+    opt_all_caps() %>%
+    # add row striping
+    opt_row_striping() %>%
+    # change overall table styling for borders and striping
+    tab_options(
+      column_labels.background.color = "#585d63",
+      column_labels.font.size = 14,
+      table_body.hlines.color = "#f6f7f7",
+      table.font.size = 12,
+      heading.align = "left",
+      heading.title.font.size = 15,
+      row.striping.background_color = "#f9f9fb",
+      row_group.font.size = 14,
+      data_row.padding = px(4),
+      table_body.vlines.style = "solid",
+      column_labels.vlines.style = "solid",
+      column_labels.vlines.color = "white",
+      ...
+    ) %>%
+    # change font to Lato throughout (note no need to have Lato locally!)
+    opt_table_font(
+      font = c(
+        google_font(name = "Lato"),
+        default_fonts()
+      )
+    )
+}
+
+
+```
+
+# Model
+
+``` {r fig.height = 8, fig.width = 8}
+post.samples <- as_draws_df(model, c("b_treat1", "sd_study__treat12"))
+
+mu_prior_plot = data.frame(prior = exp(distributional::dist_normal(mean = 0, sd = 0.82)))
+
+mu_df <- model %>%
+  spread_draws(b_treat1) %>%
+  median_qi(.width = c(.66, .8, .95))
+
+mu <- ggplot(aes(x = exp(b_treat1), alpha = 1), data = post.samples) +
+  stat_slab(aes(fill = after_stat(level)), color = "darkblue",
+                .width = c(.66, .80, .95, 1), position = "dodgejust") +
+  scale_fill_brewer(na.translate = FALSE, name = "Probability") +
+  geom_pointintervalh(aes(xmin = exp(.lower), 
+                          xmax = exp(.upper), 
+                          x = exp(b_treat1)),
+                      data = mu_df, 
+                      col = "darkblue", alpha = 1) +
+  stat_slab(aes(xdist = prior), data = mu_prior_plot, fill = NA, color = "grey",  inherit.aes = FALSE) +
+  scale_x_log10(breaks = c(0.5, 0.75, 1, 1.5, 2), expand = c(0, 0)) + 
+  ggdist::scale_thickness_shared() +
+  coord_cartesian(xlim=c(0.5, 2), ylim = c(0,1)) +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  annotate("text", x = 0.75, y = 0.8, label = "Favours\npropofol", family = "Verdana") +
+  annotate("text", x = 1.5, y = 0.8,  label = "Favours\ncomparator", family = "Verdana") +
+  annotate("text", x = 1.6, y = 0.1, label = "Mean effect prior", fontface = "bold", family = "Verdana", colour = "grey30") +
+  annotate("text", x = 1.1, y = 0.98, label = "Mean effect\nposterior", fontface = "bold", family = "Verdana", colour = "darkblue") +
+  theme_nice() +
+  forest_theme +
+  labs(x="Odds ratio (log scale)", title = "A: Posterior for the mean effect") +
+  ylab(NULL) +
+  guides(alpha = "none")
+
+tau_prior_plot = data.frame(prior = distributional::dist_cauchy(location = 0, scale = 0.5))
+
+tau <- ggplot(aes(x = sd_study__treat12, alpha = 1), data = post.samples) +
+  stat_slab(aes(fill = after_stat(ifelse(x < 0.1, "Low", ifelse(x < 0.5, "Reasonable",ifelse(x < 1, "Fairly high", "Fairly extreme"))))), position = "dodgejust") +
+  stat_pointinterval(.width = c(.66, .8, .95), alpha = 1) +
+  stat_slab(aes(xdist = prior), 
+                data = tau_prior_plot, fill = NA, color = "grey", inherit.aes = FALSE) +
+  ggdist::scale_thickness_shared() +
+  scale_color_manual(values = RColorBrewer::brewer.pal(4, "Set1"),
+                                 guide = guide_legend(reverse = TRUE),
+                     name = "Heterogeneity") + 
+  geom_vline(xintercept = 0.1, linetype = "dashed") +
+  geom_vline(xintercept = 0.5, linetype = "dashed") +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  annotate("text", x = 0.05, y = 0.98, label = "Low", fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.05, y = 0.90, label = paste0(sprintf('%.1f', 100*mean(post.samples$sd_study__treat12 < 0.1)), "%"),
+           fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.3, y = 0.98, label = "Reasonable", fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.3, y = 0.90, label = paste0(sprintf('%.1f', 100*mean(post.samples$sd_study__treat12 >= 0.1 & post.samples$sd_study__treat12 <= 0.5)), "%"),
+           fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.75, y = 0.98, label = "Fairly high", fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.75, y = 0.90, label = paste0(sprintf('%.1f', 100*mean(post.samples$sd_study__treat12 >= 0.5 & post.samples$sd_study__treat12 <= 1)), "%"),
+           fontface = "bold", family = "Verdana") +
+  annotate("text", x = 1.1, y = 0.98, label = "Fairly\nextreme", fontface = "bold", family = "Verdana") +
+  annotate("text", x = 1.1, y = 0.85, label = paste0(sprintf('%.1f', 100*mean(post.samples$sd_study__treat12 >1)), "%"),
+           fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.57, y = 0.1, label = "Heterogeneity prior", fontface = "bold", family = "Verdana", colour = "grey30", angle = -2) +
+  scale_x_continuous(breaks = c(0, 0.1, 0.25, 0.5, 0.75, 1, 1.2), expand = c(0, 0)) +           
+  coord_cartesian(xlim=c(0, 1.2), ylim = c(0,1)) +
+  theme_nice() +
+  forest_theme +
+  theme(legend.position = "none") +
+  labs(x="Log odds ratio", title = "B: Posterior for heterogeneity") +
+  ylab(NULL) +
+  guides(alpha = "none")
+
+
+grid.arrange(mu, tau, ncol = 1)
+
+```
+
+# Influence of heterogeneity
+
+``` {r fig.height = 8, fig.width = 8}
+extract_posteriors <- function(models, model_names) {
+  summary_list <- lapply(seq_along(models), function(i) {
+    model <- models[[i]]
+    model_name <- model_names[i]
+    post_samples <- as_draws_df(model, variable = "b_treat1")
+    post_samples_df <- as.data.frame(post_samples)
+    
+    summary_stats <- post_samples_df %>%
+  spread_draws(b_treat1) %>%
+      median_qi(.width = c(.95)) 
+    
+    return(summary_stats)
+  })
+  
+  summary_df <- bind_rows(summary_list)
+  return(summary_df)
+}
+
+x_values <- seq(0, 1, by = 0.01)
+
+model_names <- paste0("model_sd_", sd_prior_values)
+
+posterior_summaries <- extract_posteriors(updated_models, model_names)
+
+posterior_summaries_with_x <- posterior_summaries %>%
+  mutate(x = rep(x_values, length.out = n()))
+
+tau <- ggplot(aes(x = sd_study__treat12, alpha = 1), data = post.samples) +
+  stat_slab(aes(fill = after_stat(ifelse(x < 0.1, "Low", ifelse(x < 0.5, "Reasonable",ifelse(x < 1, "Fairly high", "Fairly extreme"))))), position = "dodgejust") +
+  stat_pointinterval(.width = c(.66, .8, .95), alpha = 1) +
+  ggdist::scale_thickness_shared() +
+  scale_color_manual(values = RColorBrewer::brewer.pal(4, "Set1")) + 
+  geom_vline(xintercept = 0.1, linetype = "dashed") +
+  geom_vline(xintercept = 0.5, linetype = "dashed") +
+  geom_vline(xintercept = 1, linetype = "dashed") +
+  annotate("text", x = 0.05, y = 0.98, label = "Low", fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.05, y = 0.90, label = paste0(sprintf('%.1f', 100*mean(post.samples$sd_study__treat12 < 0.1)), "%"),
+           fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.3, y = 0.98, label = "Reasonable", fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.3, y = 0.90, label = paste0(sprintf('%.1f', 100*mean(post.samples$sd_study__treat12 >= 0.1 & post.samples$sd_study__treat12 <= 0.5)), "%"),
+           fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.75, y = 0.98, label = "Fairly high", fontface = "bold", family = "Verdana") +
+  annotate("text", x = 0.75, y = 0.90, label = paste0(sprintf('%.1f', 100*mean(post.samples$sd_study__treat12 >= 0.5 & post.samples$sd_study__treat12 <= 1)), "%"),
+           fontface = "bold", family = "Verdana") +
+  scale_x_continuous(breaks = c(0, 0.1, 0.25, 0.5, 0.75, 1), expand = c(0, 0)) +           
+  coord_cartesian(xlim=c(0, 1.1), ylim = c(0,1)) +
+  forest_theme +
+  theme(axis.line = element_blank(),        
+        axis.text.x = element_blank(),         
+        axis.ticks.x = element_blank(), 
+        legend.position = "none") +
+  labs(title = "Influence of heterogeneity on the mean effect") +
+  ylab(NULL) +
+  xlab(NULL) +
+  guides(alpha = "none")
+
+mu_by_tau <- ggplot(aes(x = x, y = exp(b_treat1)), data = posterior_summaries_with_x) +
+                geom_ribbon(aes(ymin = exp(.lower), ymax = exp(.upper)), fill = RColorBrewer::brewer.pal(4, "Set1")[4], alpha = 0.4) +
+                geom_smooth(method = 'loess', formula = 'y ~ x', color = RColorBrewer::brewer.pal(4, "Set1")[4]) +
+                geom_hline(yintercept = 1) +
+                geom_vline(xintercept = 0.1, linetype = "dashed") +
+                geom_vline(xintercept = 0.5, linetype = "dashed") +
+                geom_vline(xintercept = 1, linetype = "dashed") +
+                scale_y_log10(breaks = c(0.9, 1, 1.2, 1.4), expand = c(0, 0)) +
+                scale_x_continuous(breaks = c(0, 0.1, 0.5, 1), expand = c(0, 0)) +
+                coord_cartesian(xlim = c(0, 1.1), ylim = c(0.9, 1.4)) +
+                labs(x="Heterogeneity (log odds ratio)", y = "Mean effect (odds ratio)") 
+
+
+layout <- c(
+  patchwork::area(t = 0, l = 1, b = 12, r = 30),
+  patchwork::area(t = 13, l = 0, b = 20, r = 30))
+
+tau + mu_by_tau + plot_layout(design = layout)
+```
+
+# Percentage of Bayesian models with 95%CrI exlcuding null
+
+``` {r}
+
+extract_conf_low <- function(model) {
+  tryCatch({
+    conf_low <- fixef(model)["treat1", "Q2.5"]
+    return(conf_low)
+  }, error = function(e) {
+    return(NA)
+  })
+}
+
+conf_lows <- sapply(updated_models, function(model) {
+  extract_conf_low(model)
+})
+
+num_models <- length(conf_lows)
+num_models_less_than_zero <- sum(conf_lows < 0, na.rm = TRUE)
+percentage_less_than_zero <- (num_models_less_than_zero / num_models) * 100
+models_with_conf_low_gt_0 <- which(conf_lows > 0)
+
+models_with_conf_low_gt_0
+```
+
